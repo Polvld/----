@@ -4,7 +4,8 @@ let game = document.querySelector('#game')
 let resultHeader = document.querySelector('#result-header')
 let result = document.querySelector('#result')
 const cells = []
-const matrix =[]
+let matrix = []
+let reverseMatrix
 
 start.addEventListener('click', startGame)
 game.addEventListener('click', handleBoxClick)
@@ -22,20 +23,33 @@ function newTable () {
         const newTr = document.createElement('tr')
         table.appendChild(newTr)
         newTr.classList.add('row')
-        for (let j = 0; j < 15; j++) {
-            const newTh = document.createElement('th')
-            newTh.style.border = '.1px dashed #7e7c7c'
-            newTh.style['border-radius'] = '100px'
-            newTh.style['outline'] = 'none'
-            newTr.appendChild(newTh)
-            newTh.dataset.row = `${i}`
-            newTh.dataset.col = `${j}`
-            newTh.classList.add('cell')
-            //cells.push(`${newTh.outerHTML}`)
+        matrix[i] = []
+        for (var j = 0; j < 15; j++) {
+            const newTd = document.createElement('td')
+            newTd.style.border = '.1px dashed #7e7c7c'
+            newTd.style['border-radius'] = '100px'
+            newTd.style['outline'] = 'none'
+            newTr.appendChild(newTd)
+            newTd.dataset.row = `${i}`
+            newTd.dataset.col = `${j}`
+            newTd.classList.add('cell')
+            matrix[i][j] = newTd
         }
     }
+    reverseMatrix = transponse(matrix)
 }
-
+function transponse(array) {
+    let m = array.length
+    let n = array[0].length 
+    let transponseArray = []
+    for (let i = 0; i < n; i++) { 
+        transponseArray[i] = []
+        for (var j = 0; j < m; j++) {
+            transponseArray[i][j] = array[j][i]
+        }
+    }
+    return transponseArray;
+}
 function show (el) {
     el.classList.remove('hide')
 }
@@ -65,7 +79,7 @@ function handleBoxClick(event){
     if (isChoosed(event.target)) {
         return 
     }
-    if (event.target.tagName == 'TH') {
+    if (event.target.tagName == 'TD') {
         event.target.style['background-color'] = 'black'
     }
     return  
@@ -87,7 +101,7 @@ function pseudoAI () {
     }
 }
 function clearTable() {
-    Array.from(document.getElementsByTagName('TH')).forEach(item => {
+    Array.from(document.getElementsByTagName('TD')).forEach(item => {
         item.style['background-color'] = ''
     })
 }

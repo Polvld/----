@@ -69,7 +69,7 @@ body {
   height: 500px;
 }
 
-th:hover {
+td:hover {
   background-color: #3a3939;
   box-shadow: 0 6px 16px 0 rgba(255, 0, 0, 0.2);
   transform: translateY(-1px);
