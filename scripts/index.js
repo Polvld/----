@@ -76,7 +76,8 @@ function endGame () {
 }
 function isCanPlay () {
     const checkChoosedCells = (el) => !el.dataset.block
-    console.log(Array.from(TD).some(checkChoosedCells))
+    //console.log('Array.from(TD).some(checkChoosedCells)', Array.from(TD).some(checkChoosedCells))
+    return Array.from(TD).some(checkChoosedCells)
 }
 function handleBoxClick(event){
     if (!isGameStarted || isChoosed(event.target)){
@@ -84,21 +85,28 @@ function handleBoxClick(event){
         // console.log('isChoosed(event.target) = ', isChoosed(event.target))
         return
     }
-    if (!isCanPlay) {
-        endGame()
-        return
+    if (!isCanPlay()) {
+        return endGame()
     }
+    //console.log('Прошли проверки в Хэндлбоксклик', isCanPlay())
     if (event.target.tagName == 'TD') {
         event.target.style['background-color'] = 'black'
         event.target.dataset.block = true
         event.target.classList.add('player')
         isAIStep = true
     }
+    //console.log('Я походил')
     let playerStep = event.target
-
+    if (!isCanPlay()) {
+        return endGame()
+    }
     if (isAIStep) {
         setTimeout(() => {
             pseudoAI(playerStep);
+            //console.log('АИ запустил цикл хода')
+            if (!isCanPlay()) {
+                return endGame()
+            }
         }, 200)
     }  
 }
@@ -118,17 +126,17 @@ function isChoosed (curcle) {
 }
 function pseudoAI (playerChoice) {
     try {
-        if (!isGameStarted){
+        if (!isGameStarted || !isAIStep){
             return
         }
-        if (!isCanPlay) {
-            endGame()
-            return
+        if (!isCanPlay()) {
+            return endGame()
         }
+        //console.log('Прошла проверка в ходе АИ')
         const x = Number(playerChoice.getAttribute('data-col')) + Math.round(Math.random() * 2 - 1)
         const y = Number(playerChoice.getAttribute('data-row')) + Math.round(Math.random() * 2 - 1)
         const cell = matrix[y][x];
-        console.log(y, x)
+        //console.log(y, x)
         if (isChoosed(cell)) {
             pseudoAI(playerChoice)
         } else {
@@ -136,15 +144,15 @@ function pseudoAI (playerChoice) {
             cell.style['background-color'] = 'white'
             cell.classList.add('AI')
             isAIStep = false
+            //console.log('АИ походил в Трай')
         }
     }
     catch {
-        if (!isGameStarted){
+        if (!isGameStarted || !isAIStep){
             return
         }
-        if (!isCanPlay) {
-            endGame()
-            return
+        if (!isCanPlay()) {
+            return endGame()
         }
         const x = Math.floor(Math.random() * matrix[0].length)
         const y = Math.floor(Math.random() * matrix.length)
@@ -171,12 +179,13 @@ function fillTable() {
         item.style['background-color'] = 'black'
         item.dataset.block = true
     })
-    // matrix[0][0].style['background-color'] = ''
-    // matrix[0][0].dataset.block = ''
+    matrix[0][0].style['background-color'] = ''
+    matrix[0][0].dataset.block = ''
+    matrix[0][1].style['background-color'] = ''
+    matrix[0][1].dataset.block = ''
     isAIStep = false
     if (!isCanPlay()) {
-        endGame()
-        return
+        return endGame()
     }
 }
 onload = newTable
