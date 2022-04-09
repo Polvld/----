@@ -236,12 +236,9 @@ function pseudoAI (playerChoice) {
             cell.dataset.block = true 
             cell.style['background-color'] = 'white'
             cell.classList.add('AI')
-            // AI.push({
-            //     row: cell.dataset.row,
-            //     col: cell.dataset.col
-            // })
         }
     }
+
 }
 function clearTable() {
     Array.from(document.getElementsByTagName('TD')).forEach(item => {
