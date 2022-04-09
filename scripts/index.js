@@ -6,9 +6,6 @@ const TD = document.getElementsByTagName('TD')
 const playerCells = document.querySelectorAll('.player')
 const AICells = document.querySelectorAll('.AI')
 
-
-
-let reverseMatrix
 let matrix = []
 let AI = []
 let isGameStarted = false
@@ -41,19 +38,6 @@ function newTable () {
             newTd.dataset.col = `${j}`
         }
     }
-    reverseMatrix = transponse(matrix)
-}
-function transponse(array) {
-    let m = array.length
-    let n = array[0].length 
-    let transponseArray = []
-    for (let i = 0; i < n; i++) { 
-        transponseArray[i] = []
-        for (var j = 0; j < m; j++) {
-            transponseArray[i][j] = array[j][i]
-        }
-    }
-    return transponseArray;
 }
 function show (el) {
     el.classList.remove('hide')
@@ -69,6 +53,7 @@ function startGame () {
 }
 function endGame (msg) {
     isGameStarted = false
+    isAIStep = false
     if (!isCanPlay()) {
         result.style.color = '#fad64e'
         result.textContent = 'Ничья, все клетки заняты'
@@ -94,14 +79,15 @@ function checkWin (side) {
     for (let i = 0; i < coords.length; i++) {
         checkRow = Number(coords[i].row)
         checkCol = Number(coords[i].col)
+        //Проверка горизонталь
         if (i + 1 < coords.length) {
             if (checkRow === Number(coords[i + 1].row) && checkCol === Number(coords[i + 1].col) - 1) {
                 if (i + 2 < coords.length) {
-                    if (checkRow === Number(coords[i + 2].row) && checkCol == Number(coords[i + 2].col) - 2) {
+                    if (checkRow === Number(coords[i + 2].row) && checkCol === Number(coords[i + 2].col) - 2) {
                         if (i + 3 < coords.length) {
-                            if (checkRow === Number(coords[i + 3].row) && checkCol == Number(coords[i + 3].col) - 3) {
+                            if (checkRow === Number(coords[i + 3].row) && checkCol === Number(coords[i + 3].col) - 3) {
                                 if (i + 4 < coords.length) {
-                                    if (checkRow === Number(coords[i + 4].row)  && checkCol == Number(coords[i + 4].col) - 4) {
+                                    if (checkRow === Number(coords[i + 4].row) && checkCol === Number(coords[i + 4].col) - 4) {
                                         return true
                                     }
                                 }
@@ -111,8 +97,60 @@ function checkWin (side) {
                 }
             }
         }
-
-        
+        //Проверка вертикаль
+        if (checkRow < 14 && checkCol < 14) {
+            if (matrix[checkRow + 1][checkCol].classList == `${side}`) {
+                if (checkRow < 13 && checkCol < 14) {
+                    if (matrix[checkRow + 2][checkCol].classList == `${side}`) {
+                        if (checkRow < 12 && checkCol < 14) {
+                            if (matrix[checkRow + 3][checkCol].classList == `${side}`) {
+                                if (checkRow < 11 && checkCol < 14) {
+                                    if (matrix[checkRow + 4][checkCol].classList == `${side}`) {
+                                        return true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        //Проверка диагональ вправо
+        if (checkRow < 14 && checkCol < 14) {
+            if (matrix[checkRow + 1][checkCol + 1].classList == `${side}`) {
+                if (checkRow < 13 && checkCol < 13) {
+                    if (matrix[checkRow + 2][checkCol + 2].classList == `${side}`) {
+                        if (checkRow < 12 && checkCol < 12) {
+                            if (matrix[checkRow + 3][checkCol + 3].classList == `${side}`) {
+                                if (checkRow < 11 && checkCol < 11) {
+                                    if (matrix[checkRow + 4][checkCol + 4].classList == `${side}`) {
+                                        return true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        //Проверка диагональ влево
+        if (checkRow < 14 && checkCol > 0) {
+            if (matrix[checkRow + 1][checkCol - 1].classList == `${side}`) {
+                if (checkRow < 13 && checkCol > 1) {
+                    if (matrix[checkRow + 2][checkCol - 2].classList == `${side}`) {
+                        if (checkRow < 12 && checkCol > 2) {
+                            if (matrix[checkRow + 3][checkCol - 3].classList == `${side}`) {
+                                if (checkRow < 11 && checkCol > 3) {
+                                    if (matrix[checkRow + 4][checkCol - 4].classList == `${side}`) {
+                                        return true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
     return false
 }
@@ -132,10 +170,15 @@ function handleBoxClick(event){
     if (checkWin('player')) {
         return endGame('Вы выиграли')
     }
-    let playerStep = event.target
+    AIStep(event.target)
+}
+function AIStep (playerStep) {
     if (isAIStep) {
         setTimeout(() => {
             pseudoAI(playerStep)
+            if (checkWin('AI')) {
+                return endGame('Вы проиграли')
+            }
             isAIStep = false
             if (!isCanPlay()) {
                 return setTimeout(() => {
