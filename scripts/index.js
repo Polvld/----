@@ -1,14 +1,18 @@
-let start = document.querySelector('#start')
-let game = document.querySelector('#game')
-let resultHeader = document.querySelector('#result-header')
-let result = document.querySelector('#result')
+const start = document.querySelector('#start')
+const game = document.querySelector('#game')
+const resultHeader = document.querySelector('#result-header')
+const result = document.querySelector('#result')
+const TD = document.getElementsByTagName('TD')
+const playerCells = document.querySelectorAll('.player')
+const AICells = document.querySelectorAll('.AI')
 
 
-let matrix = []
+
 let reverseMatrix
+let matrix = []
+let AI = []
 let isGameStarted = false
 let isAIStep = false
-let TD = []
 
 start.addEventListener('click', startGame)
 game.addEventListener('click', handleBoxClick)
@@ -35,12 +39,10 @@ function newTable () {
             matrix[i][j] = newTd
             newTd.dataset.row = `${i}`
             newTd.dataset.col = `${j}`
-            //newTd.dataset.block = false
         }
     }
     reverseMatrix = transponse(matrix)
 }
-TD = document.getElementsByTagName('TD')
 function transponse(array) {
     let m = array.length
     let n = array[0].length 
@@ -65,47 +67,80 @@ function startGame () {
     hide(resultHeader)
     show(table)
 }
-function endGame () {
+function endGame (msg) {
     isGameStarted = false
+    if (!isCanPlay()) {
+        result.style.color = '#fad64e'
+        result.textContent = 'Ничья, все клетки заняты'
+        show(resultHeader)
+    } else {
+        result.style.color = '#fad64e'
+        result.textContent = msg
+        show(resultHeader)
+    }
     show(start)
     hide(table)
     clearTable()
-        // result.style.color = '#fad64e'
-        // result.textContent = 'Вы победили'
-        // show(resultHeader)
+        
+}
+function checkWin (side) {
+    let coords = []
+    Array.from(document.querySelectorAll(`.${side}`)).map((el, index, arr) => {
+        coords[index] = {
+            row: el.dataset.row,
+            col: el.dataset.col
+        }
+    })
+    for (let i = 0; i < coords.length; i++) {
+        checkRow = Number(coords[i].row)
+        checkCol = Number(coords[i].col)
+        if (i + 1 < coords.length) {
+            if (checkRow === Number(coords[i + 1].row) && checkCol === Number(coords[i + 1].col) - 1) {
+                if (i + 2 < coords.length) {
+                    if (checkRow === Number(coords[i + 2].row) && checkCol == Number(coords[i + 2].col) - 2) {
+                        if (i + 3 < coords.length) {
+                            if (checkRow === Number(coords[i + 3].row) && checkCol == Number(coords[i + 3].col) - 3) {
+                                if (i + 4 < coords.length) {
+                                    if (checkRow === Number(coords[i + 4].row)  && checkCol == Number(coords[i + 4].col) - 4) {
+                                        return true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        
+    }
+    return false
 }
 function isCanPlay () {
-    const checkChoosedCells = (el) => !el.dataset.block
-    //console.log('Array.from(TD).some(checkChoosedCells)', Array.from(TD).some(checkChoosedCells))
-    return Array.from(TD).some(checkChoosedCells)
+    return Array.from(TD).some(el => !el.dataset.block)
 }
 function handleBoxClick(event){
     if (!isGameStarted || isChoosed(event.target)){
-        // console.log('!isGameStarted = ', !isGameStarted)
-        // console.log('isChoosed(event.target) = ', isChoosed(event.target))
         return
     }
-    if (!isCanPlay()) {
-        return endGame()
-    }
-    //console.log('Прошли проверки в Хэндлбоксклик', isCanPlay())
     if (event.target.tagName == 'TD') {
         event.target.style['background-color'] = 'black'
         event.target.dataset.block = true
         event.target.classList.add('player')
         isAIStep = true
     }
-    //console.log('Я походил')
-    let playerStep = event.target
-    if (!isCanPlay()) {
-        return endGame()
+    if (checkWin('player')) {
+        return endGame('Вы выиграли')
     }
+    let playerStep = event.target
     if (isAIStep) {
         setTimeout(() => {
-            pseudoAI(playerStep);
-            //console.log('АИ запустил цикл хода')
+            pseudoAI(playerStep)
+            isAIStep = false
             if (!isCanPlay()) {
-                return endGame()
+                return setTimeout(() => {
+                    endGame()
+                }, 1000)
             }
         }, 200)
     }  
@@ -113,14 +148,11 @@ function handleBoxClick(event){
 function isChoosed (curcle) {
     try {
         if (!curcle.dataset.block) {
-            // console.log('!curcle.dataset.block = ', !curcle.dataset.block)
             return false
         }
-        // console.log('Try: !curcle.dataset.block = ', !curcle.dataset.block)
         return true
     }
     catch {
-        // console.log('Catch: !curcle.dataset.block = ', !curcle.dataset.block)
         return true
     }
 }
@@ -130,21 +162,19 @@ function pseudoAI (playerChoice) {
             return
         }
         if (!isCanPlay()) {
-            return endGame()
+            return setTimeout(() => {
+                endGame()
+            }, 1000)
         }
-        //console.log('Прошла проверка в ходе АИ')
         const x = Number(playerChoice.getAttribute('data-col')) + Math.round(Math.random() * 2 - 1)
         const y = Number(playerChoice.getAttribute('data-row')) + Math.round(Math.random() * 2 - 1)
-        const cell = matrix[y][x];
-        //console.log(y, x)
+        const cell = matrix[y][x]
         if (isChoosed(cell)) {
             pseudoAI(playerChoice)
         } else {
             cell.dataset.block = true 
             cell.style['background-color'] = 'white'
             cell.classList.add('AI')
-            isAIStep = false
-            //console.log('АИ походил в Трай')
         }
     }
     catch {
@@ -156,22 +186,26 @@ function pseudoAI (playerChoice) {
         }
         const x = Math.floor(Math.random() * matrix[0].length)
         const y = Math.floor(Math.random() * matrix.length)
-        const cell = matrix[y][x];
-        console.log(y, x, 'Данные из catch')
+        const cell = matrix[y][x]
         if (isChoosed(cell)) {
             pseudoAI(playerChoice)
         } else {
             cell.dataset.block = true 
             cell.style['background-color'] = 'white'
             cell.classList.add('AI')
-            isAIStep = false
+            // AI.push({
+            //     row: cell.dataset.row,
+            //     col: cell.dataset.col
+            // })
         }
     }
 }
 function clearTable() {
     Array.from(document.getElementsByTagName('TD')).forEach(item => {
         item.style['background-color'] = ''
-        item.dataset.block = false
+        delete item.dataset.block
+        item.classList.remove('player')
+        item.classList.remove('AI')
     })
 }
 function fillTable() {
@@ -181,8 +215,8 @@ function fillTable() {
     })
     matrix[0][0].style['background-color'] = ''
     matrix[0][0].dataset.block = ''
-    matrix[0][1].style['background-color'] = ''
-    matrix[0][1].dataset.block = ''
+    // matrix[0][1].style['background-color'] = ''
+    // matrix[0][1].dataset.block = ''
     isAIStep = false
     if (!isCanPlay()) {
         return endGame()
